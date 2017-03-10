@@ -34,7 +34,7 @@ for prefix in train validate
  done
 
 # clean empty and long sentences, and sentences with high source-target ratio (training corpus only)
-$mosesdecoder/scripts/training/clean-corpus-n.perl data/corpus.tok $SRC $TRG data/train.tok.clean 1 80
+$mosesdecoder/scripts/training/clean-corpus-n.perl data/train.tok $SRC $TRG data/train.tok.clean 1 80
 
 # train truecaser
 [[ ! -d "model" ]] && mkdir model
@@ -49,7 +49,7 @@ for prefix in train
  done
 
 # apply truecaser (dev/test files)
-for prefix in newsdev2016
+for prefix in validate
  do
   $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$SRC < data/$prefix.tok.$SRC > data/$prefix.tc.$SRC
   $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$TRG < data/$prefix.tok.$TRG > data/$prefix.tc.$TRG
