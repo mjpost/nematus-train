@@ -11,24 +11,7 @@
 # also, you may want to learn BPE segmentations separately for each language,
 # especially if they differ in their alphabet
 
-# suffix of source language files
-SRC=ro
-
-# suffix of target language files
-TRG=en
-
-# number of merge operations. Network vocabulary should be slightly larger (to include characters),
-# or smaller if the operations are learned on the joint vocabulary
-bpe_operations=89500
-
-# path to moses decoder: https://github.com/moses-smt/mosesdecoder
-mosesdecoder=/path/to/mosesdecoder
-
-# path to subword segmentation scripts: https://github.com/rsennrich/subword-nmt
-subword_nmt=/path/to/subword-nmt 
-
-# path to nematus ( https://www.github.com/rsennrich/nematus )
-nematus=/path/to/nematus
+. params.txt
 
 # tokenize
 for prefix in corpus newsdev2016
