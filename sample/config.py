@@ -8,12 +8,12 @@ for line in open('params.txt'):
 
     if '=' in line:
         key, value = line.rstrip().split('=')
-        key = key.trim()
-        value = value.trim()
+        key = key.strip()
+        value = value.strip()
 
         if key == 'SRC':
             SRC = value
-        elif key = 'TRG':
+        elif key == 'TRG':
             TRG = value
 
 # TODO: automatically figure out vocab size from prebuilt model
