@@ -9,11 +9,10 @@ SRC=ro
 TRG=en
 
 # the training data (list of path prefixes)
-TRAIN_SOURCES=""
-
+TRAINING_SOURCES=""
 
 # validation data (path prefixes)
-VALIDATIONS_SOURCES=
+VALIDATION_SOURCES=
 
 
 #########################

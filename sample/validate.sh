@@ -5,8 +5,8 @@
 #model prefix
 prefix=model/model.npz
 
-dev=data/newsdev2016.bpe.ro
-ref=data/newsdev2016.tok.en
+dev=data/validate.bpe.$SRC
+ref=data/validate.tok.$TRG
 
 # decode
 THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device,on_unused_input=warn python $nematus/nematus/translate.py \

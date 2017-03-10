@@ -13,13 +13,18 @@
 
 . params.txt
 
+# copy data over
+(for source in $TRAINING_SOURCES; do cat $source.$SRC; done) > data/train.$SRC
+(for source in $TRAINING_SOURCES; do cat $source.$TRG; done) > data/train.$TRG
+
+(for source in $VALIDATION_SOURCES; do cat $source.$SRC; done) > data/validate.$SRC
+(for source in $VALIDATION_SOURCES; do cat $source.$TRG; done) > data/validate.$TRG
+
 # tokenize
-for prefix in corpus newsdev2016
+for prefix in train validate
  do
    cat data/$prefix.$SRC | \
    $mosesdecoder/scripts/tokenizer/normalize-punctuation.perl -l $SRC | \
-   ../preprocess/normalise-romanian.py | \
-   ../preprocess/remove-diacritics.py | \
    $mosesdecoder/scripts/tokenizer/tokenizer.perl -a -l $SRC > data/$prefix.tok.$SRC
 
    cat data/$prefix.$TRG | \
@@ -29,14 +34,15 @@ for prefix in corpus newsdev2016
  done
 
 # clean empty and long sentences, and sentences with high source-target ratio (training corpus only)
-$mosesdecoder/scripts/training/clean-corpus-n.perl data/corpus.tok $SRC $TRG data/corpus.tok.clean 1 80
+$mosesdecoder/scripts/training/clean-corpus-n.perl data/corpus.tok $SRC $TRG data/train.tok.clean 1 80
 
 # train truecaser
-$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/corpus.tok.clean.$SRC -model model/truecase-model.$SRC
-$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/corpus.tok.clean.$TRG -model model/truecase-model.$TRG
+[[ ! -d "model" ]] && mkdir model
+$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$SRC -model model/truecase-model.$SRC
+$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$TRG -model model/truecase-model.$TRG
 
 # apply truecaser (cleaned training corpus)
-for prefix in corpus
+for prefix in train
  do
   $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$SRC < data/$prefix.tok.clean.$SRC > data/$prefix.tc.$SRC
   $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$TRG < data/$prefix.tok.clean.$TRG > data/$prefix.tc.$TRG
@@ -50,15 +56,15 @@ for prefix in newsdev2016
  done
 
 # train BPE
-cat data/corpus.tc.$SRC data/corpus.tc.$TRG | $subword_nmt/learn_bpe.py -s $bpe_operations > model/$SRC$TRG.bpe
+cat data/train.tc.$SRC data/train.tc.$TRG | $subword_nmt/learn_bpe.py -s $bpe_operations > model/$SRC$TRG.bpe
 
 # apply BPE
 
-for prefix in corpus newsdev2016
+for prefix in train validate
  do
   $subword_nmt/apply_bpe.py -c model/$SRC$TRG.bpe < data/$prefix.tc.$SRC > data/$prefix.bpe.$SRC
   $subword_nmt/apply_bpe.py -c model/$SRC$TRG.bpe < data/$prefix.tc.$TRG > data/$prefix.bpe.$TRG
  done
 
 # build network dictionary
-$nematus/data/build_dictionary.py data/corpus.bpe.$SRC data/corpus.bpe.$TRG
+$nematus/data/build_dictionary.py data/train.bpe.$SRC data/train.bpe.$TRG

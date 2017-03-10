@@ -4,6 +4,6 @@
 
 THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device,on_unused_input=warn python $nematus/nematus/translate.py \
      -m model/model.npz \
-     -i data/newsdev2016.bpe.ro \
-     -o data/newsdev2016.output \
+     -i data/validate.bpe.$SRC \
+     -o data/validate.output \
      -k 12 -n -p 1
