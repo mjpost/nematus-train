@@ -1,16 +1,17 @@
-This directory contains some sample files and configuration scripts for training a simple neural MT model
-
-
 INSTRUCTIONS
 ------------
 
-all scripts contain variables that you will need to set to run the scripts.
+Choose a run directory and create a file named "params.txt". This is loaded by all the files in this
+directory. A sample one has been provided for you. This will set top-level parameters such as the
+language pair and data sets being used.
+
+Put GPU specific commands in a file named "gpu.sh". These are shell commands that are run
+prior to any GPU job (assuming "device" has been set to "gpu" in params.txt). For example,
+you might need to load a Python environment or CuDNN.
+
+All scripts contain variables that you will need to set to run the scripts.
 For processing the sample data, only paths to different toolkits need to be set.
 For processing new data, more changes will be necessary.
-
-As a first step, download the training data:
-
-  ./download_files.sh
 
 Then, preprocess the training, dev and test data:
 

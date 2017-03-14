@@ -1,3 +1,13 @@
+This directory contains files and configuration scripts for training a simple neural MT
+model. It is based on scripts provided by Rico Sennrich for training WMT'16 models
+
+       https://github.com/rsennrich/wmt16-scripts
+
+but has been modified to be a bit more general and make it easier to change to different
+languages and datasets. These can be found in sample/ (see the README there).
+
+Old README follows pending later cleanup.
+
 Scripts for Edinburgh Neural MT systems for WMT 16
 ==================================================
 
