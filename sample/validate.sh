@@ -1,6 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 . params.txt
+
+# Load the GPU-specific commands if necessary
+if [[ $device = "gpu" ]]; then
+  echo "Loading GPU"
+  . gpu.sh
+fi
 
 #model prefix
 prefix=model/model.npz
@@ -15,9 +21,7 @@ THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device,on_unused_input=warn py
      -o $dev.output.dev \
      -k 12 -n -p 1
 
-
 ./postprocess-dev.sh < $dev.output.dev > $dev.output.postprocessed.dev
-
 
 ## get BLEU
 BEST=`cat ${prefix}_best_bleu || echo 0`
