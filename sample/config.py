@@ -2,6 +2,9 @@ import numpy
 import os
 import sys
 
+VOCAB_SIZE = 90000
+
+# Assumes the presence of a file "params.txt"
 for line in open('params.txt'):
     if line.startswith('#'):
         continue
@@ -15,10 +18,9 @@ for line in open('params.txt'):
             SRC = value
         elif key == 'TRG':
             TRG = value
+        elif key == 'VOCAB_SIZE':
+            VOCAB_SIZE = int(value)
 
-# TODO: automatically figure out vocab size from prebuilt model
-
-VOCAB_SIZE = 90000
 DATA_DIR = "data/"
 
 from nematus.nmt import train
@@ -40,9 +42,9 @@ if __name__ == '__main__':
                     datasets=[DATA_DIR + '/train.bpe.' + SRC, DATA_DIR + '/train.bpe.' + TRG],
                     valid_datasets=[DATA_DIR + '/validate.bpe.' + SRC, DATA_DIR + '/validate.bpe.' + TRG],
                     dictionaries=[DATA_DIR + '/train.bpe.' + SRC + '.json',DATA_DIR + '/train.bpe.' + TRG + '.json'],
-                    validFreq=10000,
+                    validFreq=1000,
                     dispFreq=1000,
-                    saveFreq=30000,
+                    saveFreq=1000,
                     sampleFreq=10000,
                     use_dropout=False,
                     dropout_embedding=0.2, # dropout for input embeddings (0: no dropout)

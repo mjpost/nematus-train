@@ -14,6 +14,7 @@
 . params.txt
 
 # copy data over
+[[ ! -d data ]] && mkdir data
 (for source in $TRAINING_SOURCES; do cat $source.$SRC; done) > data/train.$SRC
 (for source in $TRAINING_SOURCES; do cat $source.$TRG; done) > data/train.$TRG
 
@@ -56,6 +57,7 @@ for prefix in validate
  done
 
 # train BPE
+let bpe_operations=$VOCAB_SIZE-500
 cat data/train.tc.$SRC data/train.tc.$TRG | $subword_nmt/learn_bpe.py -s $bpe_operations > model/$SRC$TRG.bpe
 
 # apply BPE
