@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [[ -z $1 ]]; then
+    echo "Usage: validate-qsub.sh MODEL"
+    exit 1
+fi
+
+prefix=$1
+
 . params.txt
 
 # Load the GPU-specific commands if necessary
@@ -8,19 +15,17 @@ if [[ $device = "gpu" ]]; then
   . gpu.sh
 fi
 
-#model prefix
-prefix=model/model.npz
-
 dev=data/validate.bpe.$SRC
 ref=data/validate.tok.$TRG
+out=$dev.$(basename $prefix .npz).output
 
 # decode
 if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
     echo "\$AMUNMT apparently not installed, too bad --- this is going to take a while!"
     THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device,on_unused_input=warn python $nematus/nematus/translate.py \
-        -m $prefix.dev.npz \
+        -m $prefix \
         -i $dev \
-        -o $dev.output.dev \
+        -o $out \
         -k 12 -n -p 1
 else
 cat > config.yml <<EOF
@@ -36,7 +41,7 @@ gpu-threads: 1
 # scorer configuration
 scorers:
   F0:
-    path: model/model.npz
+    path: $prefix
     type: Nematus
 
 # scorer weights
@@ -51,15 +56,17 @@ bpe: model/$SRC$TRG.bpe
 debpe: false
 EOF
 
-cat $dev | $AMUNMT/build/bin/amun -c config.yml > $dev.output.dev
+cat $dev | $AMUNMT/build/bin/amun -c config.yml > $out
 fi
 
-./postprocess-dev.sh < $dev.output.dev > $dev.output.postprocessed.dev
+./postprocess-dev.sh < $out > $out.postprocessed
 
 ## get BLEU
-BEST=`cat ${prefix}_best_bleu || echo 0`
-$mosesdecoder/scripts/generic/multi-bleu.perl $ref < $dev.output.postprocessed.dev >> ${prefix}_bleu_scores
-BLEU=`$mosesdecoder/scripts/generic/multi-bleu.perl $ref < $dev.output.postprocessed.dev | cut -f 3 -d ' ' | cut -f 1 -d ','`
+BEST=`cat model/model.npz_best_bleu || echo 0`
+bleu_output=$($mosesdecoder/scripts/generic/multi-bleu.perl $ref < $out.postprocessed)
+echo -e "$prefix\t$bleu_output" >> model/model.npz_bleu_scores
+$mosesdecoder/scripts/generic/multi-bleu.perl $ref < $out.postprocessed >> model/model.npz_bleu_scores
+BLEU=`echo $bleu_output | cut -f 3 -d ' ' | cut -f 1 -d ','`
 BETTER=`echo "$BLEU > $BEST" | bc`
 
 echo "BLEU = $BLEU"
@@ -67,6 +74,6 @@ echo "BLEU = $BLEU"
 # save model with highest BLEU
 if [ "$BETTER" = "1" ]; then
   echo "new best; saving"
-  echo $BLEU > ${prefix}_best_bleu
-  cp ${prefix}.dev.npz ${prefix}.npz.best_bleu
+  echo $BLEU > model/model.npz_best_bleu
+  ln -sf $(basename $prefix) $prefix.best_bleu
 fi
