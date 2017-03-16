@@ -15,11 +15,44 @@ dev=data/validate.bpe.$SRC
 ref=data/validate.tok.$TRG
 
 # decode
-THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device,on_unused_input=warn python $nematus/nematus/translate.py \
-     -m $prefix.dev.npz \
-     -i $dev \
-     -o $dev.output.dev \
-     -k 12 -n -p 1
+if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
+    echo "\$AMUNMT apparently not installed, too bad --- this is going to take a while!"
+    THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device,on_unused_input=warn python $nematus/nematus/translate.py \
+        -m $prefix.dev.npz \
+        -i $dev \
+        -o $dev.output.dev \
+        -k 12 -n -p 1
+else
+cat > config.yml <<EOF
+# Paths are relative to config file location
+relative-paths: yes
+
+# performance settings
+beam-size: 12
+devices: [0]
+normalize: yes
+gpu-threads: 1
+
+# scorer configuration
+scorers:
+  F0:
+    path: model/model.npz
+    type: Nematus
+
+# scorer weights
+weights:
+  F0: 1.0
+
+# vocabularies
+source-vocab: data/train.bpe.$SRC.json
+target-vocab: data/train.bpe.$TRG.json
+
+bpe: model/$SRC$TRG.bpe
+debpe: false
+EOF
+
+cat $dev | $AMUNMT/build/bin/amun -c config.yml > $dev.output.dev
+fi
 
 ./postprocess-dev.sh < $dev.output.dev > $dev.output.postprocessed.dev
 
