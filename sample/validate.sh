@@ -17,7 +17,8 @@ fi
 
 dev=data/validate.bpe.$SRC
 ref=data/validate.tok.$TRG
-out=$dev.$(basename $prefix .npz).output
+modelname=$(basename $prefix.npz)
+out=$dev.$modelname.output
 
 # decode
 if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
@@ -28,7 +29,7 @@ if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
         -o $out \
         -k 12 -n -p 1
 else
-cat > config.yml <<EOF
+cat > config.$modelname.yml <<EOF
 # Paths are relative to config file location
 relative-paths: yes
 
@@ -56,7 +57,7 @@ bpe: model/$SRC$TRG.bpe
 debpe: false
 EOF
 
-cat $dev | $AMUNMT/build/bin/amun -c config.yml > $out
+$AMUNMT/build/bin/amun -c config.$modelname.yml -i $dev > $out
 fi
 
 ./postprocess-dev.sh < $out > $out.postprocessed
@@ -74,5 +75,5 @@ echo "BLEU = $BLEU"
 if [ "$BETTER" = "1" ]; then
   echo "new best; saving"
   echo $BLEU > model/model.npz_best_bleu
-  ln -sf $(basename $prefix) $prefix.best_bleu
+  ln -sf $(basename $prefix) model/model.npz_best_bleu
 fi
