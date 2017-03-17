@@ -9,10 +9,18 @@
 #
 # The default maximum is 1.
 
-max=$1
-if [[ -z $max ]]; then
-    max=1
+# currently ignores request for > 1
+max=1
+
+which nvidia-smi > /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+    echo -1
+    exit
 fi
 
-let thresh=max-1
-seq -s' ' 0 $thresh
+export n_gpus=$(nvidia-smi -L | wc -l)
+free=$(nvidia-smi | sed -e '1,/Processes/d' | tail -n+3 | head -n-1 | perl -ne 'next unless /^\|\s+(\d)\s+\d+/; $a{$1}++; for(my $i=0;$i<$ENV{"n_gpus"};$i++) { if (!defined($a{$i})) { print $i."\n"; last; }}' | tail -n 1)
+if [[ -z $free ]]; then
+    free=0
+fi
+echo $free
