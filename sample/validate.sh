@@ -65,7 +65,6 @@ fi
 BEST=`cat model/model.npz_best_bleu || echo 0`
 bleu_output=$($mosesdecoder/scripts/generic/multi-bleu.perl $ref < $out.postprocessed)
 echo -e "$prefix\t$bleu_output" >> model/model.npz_bleu_scores
-$mosesdecoder/scripts/generic/multi-bleu.perl $ref < $out.postprocessed >> model/model.npz_bleu_scores
 BLEU=`echo $bleu_output | cut -f 3 -d ' ' | cut -f 1 -d ','`
 BETTER=`echo "$BLEU > $BEST" | bc`
 
