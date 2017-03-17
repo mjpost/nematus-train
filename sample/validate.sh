@@ -20,6 +20,8 @@ ref=data/validate.tok.$TRG
 modelname=$(basename $prefix.npz)
 out=$dev.$modelname.output
 
+gpu_list=$($(dirname $0)/get-gpus.sh 1)
+
 # decode
 if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
     echo "\$AMUNMT apparently not installed, too bad --- this is going to take a while!"
@@ -35,7 +37,7 @@ relative-paths: yes
 
 # performance settings
 beam-size: 12
-devices: [0]
+devices: [$gpu_list]
 normalize: yes
 gpu-threads: 1
 
