@@ -17,15 +17,16 @@ fi
 
 dev=data/validate.bpe.$SRC
 ref=data/validate.tok.$TRG
-modelname=$(basename $prefix.npz)
+modelname=$(basename $prefix .npz)
 out=$dev.$modelname.output
 
-gpu_list=$($(dirname $0)/get-gpus.sh 1)
+devno=$($TRAIN/get-gpus.sh)
+echo "Using device $devno" 
 
 # decode
 if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
     echo "\$AMUNMT apparently not installed, too bad --- this is going to take a while!"
-    THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device,on_unused_input=warn python $nematus/nematus/translate.py \
+    THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device$devno,on_unused_input=warn python $nematus/nematus/translate.py \
         -m $prefix \
         -i $dev \
         -o $out \
@@ -37,9 +38,7 @@ relative-paths: yes
 
 # performance settings
 beam-size: 12
-devices: [$gpu_list]
 normalize: yes
-gpu-threads: 1
 
 # scorer configuration
 scorers:
@@ -59,7 +58,7 @@ bpe: model/$SRC$TRG.bpe
 debpe: false
 EOF
 
-$AMUNMT/build/bin/amun -c config.$modelname.yml -i $dev > $out
+$AMUNMT/build/bin/amun -c config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out
 fi
 
 ./postprocess-dev.sh < $out > $out.postprocessed
