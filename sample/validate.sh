@@ -7,12 +7,12 @@ fi
 
 prefix=$1
 
-. params.txt
+. ./params.txt
 
 # Load the GPU-specific commands if necessary
 if [[ $device = "gpu" ]]; then
   echo "Loading GPU"
-  . gpu.sh
+  . ./gpu.sh
 fi
 
 dev=data/validate.bpe.$SRC
@@ -54,7 +54,8 @@ weights:
 source-vocab: data/train.bpe.$SRC.json
 target-vocab: data/train.bpe.$TRG.json
 
-bpe: model/$SRC$TRG.bpe
+# don't apply BPE because that has already been done
+#bpe: model/$SRC$TRG.bpe
 debpe: false
 EOF
 
