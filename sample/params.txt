@@ -17,12 +17,15 @@ VALIDATION_SOURCES=
 # size of the vocabulary
 VOCAB_SIZE = 50000
 
+# how long to run each training job for (in seconds)
+RUNTIME=14400
+
 #########################
 # Variables to set once #
 #########################
 
-# directory containing training scripts
-TRAIN=$HOME/code/nematus-train/sample
+# temp directory
+TMP=/scratch
 
 # path to moses decoder: https://github.com/moses-smt/mosesdecoder
 mosesdecoder=/path/to/mosesdecoder
@@ -32,6 +35,9 @@ subword_nmt=/path/to/subword-nmt
 
 # path to nematus: https://www.github.com/rsennrich/nematus
 nematus=/path/to/nematus
+
+# directory containing training scripts
+TRAIN=$HOME/code/nematus-train/sample
 
 # theano device, in case you do not want to compute on gpu, change it to cpu
 device=gpu
