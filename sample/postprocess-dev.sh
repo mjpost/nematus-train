@@ -1,6 +1,6 @@
 #/bin/sh
 
-. params.txt
+. ./params.txt
 
 sed 's/\@\@ //g' | \
 $mosesdecoder/scripts/recaser/detruecase.perl

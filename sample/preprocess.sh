@@ -11,7 +11,7 @@
 # also, you may want to learn BPE segmentations separately for each language,
 # especially if they differ in their alphabet
 
-. params.txt
+. ./params.txt
 
 # copy data over
 [[ ! -d data ]] && mkdir data

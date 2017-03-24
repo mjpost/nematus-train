@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#$ -S /bin/bash -V -cwd -j y
+#$ -l h_rt=168:00:00
+
 . params.txt
 
 # Load the GPU-specific commands if necessary
