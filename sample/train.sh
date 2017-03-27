@@ -5,7 +5,7 @@
 
 . params.txt
 
-maxiters=9999
+maxiters=50
 if [[ ! -z $1 ]]; then
     maxiters=$1
 fi
@@ -23,10 +23,10 @@ if [[ $device = "gpu" ]]; then
     . ./gpu.sh
 fi
 
-devno=$($TRAIN/get-gpus.sh)
-echo "Using device gpu$devno"
+devno=\$(\$TRAIN/get-gpus.sh)
+echo "Using device gpu\$devno"
 
-THEANO_FLAGS=device=$device$devno python config.py -runtime $RUNTIME -vocab-size $VOCAB_SIZE -source $SRC -target $TRG
+THEANO_FLAGS=device=$device\$devno python config.py -runtime \$RUNTIME -vocab-size \$VOCAB_SIZE -source \$SRC -target \$TRG
 EOF
 
 iter=1
