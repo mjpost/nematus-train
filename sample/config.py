@@ -3,13 +3,13 @@ import os
 import sys
 import argparse
 
-
 parser = argparse.ArgumentParser(description='Run Nematus training.')
 parser.add_argument('-vocab-size', type=int, default=50000, help='Size of the vocabulary')
 parser.add_argument('-source', type=str, required=True, help='Source language')
 parser.add_argument('-target', type=str, required=True, help='Source language')
 parser.add_argument('-runtime', type=int, default=0, help='How long to run for (in seconds)')
 parser.add_argument('-data-dir', type=str, default='data', help='Where to find the data')
+parser.add_argument('-validate-script', type=str, default='./validate.sh', help='The validation script to run')
 
 from nematus.nmt import train
 
@@ -48,5 +48,5 @@ if __name__ == '__main__':
                     dropout_source=0.1, # dropout source words (0: no dropout)
                     dropout_target=0.1, # dropout target words (0: no dropout)
                     overwrite=False,
-                    external_validation_script='./validate-qsub.sh')
+                    external_validation_script=args.validate_script)
     print validerr
