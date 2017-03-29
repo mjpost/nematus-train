@@ -12,7 +12,7 @@ prefix=$1
 # Load the GPU-specific commands if necessary
 if [[ $device = "gpu" ]]; then
   echo "Loading GPU"
-  . ./gpu.sh
+  . $TRAIN/gpu.sh
 fi
 
 dev=data/validate.bpe.$SRC
@@ -62,7 +62,7 @@ EOF
 $AMUNMT/build/bin/amun -c config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out
 fi
 
-./postprocess-dev.sh < $out > $out.postprocessed
+$TRAIN/postprocess-dev.sh < $out > $out.postprocessed
 
 ## get BLEU
 BEST=`cat model/model.npz_best_bleu || echo 0`
