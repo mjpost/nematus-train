@@ -1,26 +1,22 @@
 #!/bin/bash
 
-# Returns a space-separated list of available GPU ids, e.g., "0 1".
-# If an argument is passed, it will return at most that number of GPUs,
-# e.g.,
+# Returns the GPU to use. It first tries to read it from the environment variable
+# SGE_HGR_gpu or SGE_HGR_gpu_card, which can be set by the Univa grid manager as
+# described here:
 #
-#     $ bash get-gpus.sh 1
-#     0
+# http://ernst.bablick.de/blog_files/how_to_schedule_gpu_resources.html
 #
-# The default maximum is 1.
+# If that's not found, it hackily queries "nvidia-smi" to find the first GPU with
+# no running process.
 
-# currently ignores request for > 1
-max=1
-
-which nvidia-smi > /dev/null 2>&1
-if [[ $? -ne 0 ]]; then
-    echo -1
-    exit
+card=-1
+if [[ ! -z $SGE_HGR_gpu ]]; then
+    card=$(echo $SGE_HGR_gpu | perl -pe 's/gpu//')
+elif [[ ! -z $SGE_HGR_gpu_card ]]; then
+    card=$(echo $SGE_HGR_gpu_card | perl -pe 's/gpu//')
+elif [[ ! -z $(which nvidia-smi 2> /dev/null) ]]; then
+    n_gpus=$(nvidia-smi -L | wc -l)
+    card=$(nvidia-smi | sed -e '1,/Processes/d' | tail -n+3 | head -n-1 | perl -ne 'next unless /^\|\s+(\d)\s+\d+/; $a{$1}++; for(my $i=0;$i<$ENV{"n_gpus"};$i++) { if (!defined($a{$i})) { print $i."\n"; last; }}' | tail -n 1)
 fi
 
-export n_gpus=$(nvidia-smi -L | wc -l)
-free=$(nvidia-smi | sed -e '1,/Processes/d' | tail -n+3 | head -n-1 | perl -ne 'next unless /^\|\s+(\d)\s+\d+/; $a{$1}++; for(my $i=0;$i<$ENV{"n_gpus"};$i++) { if (!defined($a{$i})) { print $i."\n"; last; }}' | tail -n 1)
-if [[ -z $free ]]; then
-    free=0
-fi
-echo $free
+echo $card
