@@ -15,7 +15,7 @@ if [[ ! -z $SGE_HGR_gpu ]]; then
 elif [[ ! -z $SGE_HGR_gpu_card ]]; then
     card=$(echo $SGE_HGR_gpu_card | perl -pe 's/gpu//')
 elif [[ ! -z $(which nvidia-smi 2> /dev/null) ]]; then
-    n_gpus=$(nvidia-smi -L | wc -l)
+    export n_gpus=$(nvidia-smi -L | wc -l)
     card=$(nvidia-smi | sed -e '1,/Processes/d' | tail -n+3 | head -n-1 | perl -ne 'next unless /^\|\s+(\d)\s+\d+/; $a{$1}++; for(my $i=0;$i<$ENV{"n_gpus"};$i++) { if (!defined($a{$i})) { print $i."\n"; last; }}' | tail -n 1)
 fi
 
