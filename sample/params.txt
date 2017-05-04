@@ -20,6 +20,15 @@ VOCAB_SIZE = 50000
 # how long to run each training job for (in seconds)
 RUNTIME=14400
 
+# any factors? (1 means no)
+FACTORS=1
+
+# factor dimensions (unset if only one factor)
+DIMS=""
+
+# any qsub params for the training script
+QSUB_PARAMS=""
+
 #########################
 # Variables to set once #
 #########################

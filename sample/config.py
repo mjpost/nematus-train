@@ -10,6 +10,9 @@ parser.add_argument('-target', type=str, required=True, help='Source language')
 parser.add_argument('-runtime', type=int, default=0, help='How long to run for (in seconds)')
 parser.add_argument('-data-dir', type=str, default='data', help='Where to find the data')
 parser.add_argument('-validate-script', type=str, default='./validate.sh', help='The validation script to run')
+parser.add_argument('-batch-size', type=int, default=80, help='The batch size')
+parser.add_argument('-factors', type=int, default=1, help='The number of factors')
+parser.add_argument('-dims', type=int, nargs='+', default=None, help='Factor dimensions')
 
 from nematus.nmt import train
 
@@ -21,8 +24,21 @@ if __name__ == '__main__':
     TRG = args.target
     DATA_DIR = args.data_dir
 
+    dicts = [DATA_DIR + '/train.bpe.' + SRC + '.json',
+             DATA_DIR + '/train.bpe.' + TRG + '.json']
+    if args.factors == 1:
+        train_set = 'train.bpe'
+        validate_set = 'validate.bpe'
+    else:
+        train_set = 'train.factors'
+        validate_set = 'validate.factors'
+        for i in range(1, args.factors):
+            dicts.insert(-1, '{}/train.factors.{}.{}.json'.format(DATA_DIR, i, SRC))
+
     validerr = train(saveto='model/model.npz',
                     reload_=True,
+                    factors=args.factors,
+                    dim_per_factor=args.dims,
                     dim_word=500,
                     dim=1024,
                     n_words=VOCAB_SIZE,
@@ -32,11 +48,13 @@ if __name__ == '__main__':
                     lrate=0.0001,
                     optimizer='adadelta',
                     maxlen=50,
-                    batch_size=80,
-                    valid_batch_size=80,
-                    datasets=[DATA_DIR + '/train.bpe.' + SRC, DATA_DIR + '/train.bpe.' + TRG],
-                    valid_datasets=[DATA_DIR + '/validate.bpe.' + SRC, DATA_DIR + '/validate.bpe.' + TRG],
-                    dictionaries=[DATA_DIR + '/train.bpe.' + SRC + '.json',DATA_DIR + '/train.bpe.' + TRG + '.json'],
+                    batch_size=args.batch_size,
+                    valid_batch_size=args.batch_size,
+                    datasets=['{}/{}.{}'.format(DATA_DIR, train_set, SRC),
+                              '{}/train.bpe.{}'.format(DATA_DIR, TRG)],
+                    valid_datasets=['{}/{}.{}'.format(DATA_DIR, validate_set, SRC),
+                                    '{}/validate.bpe.{}'.format(DATA_DIR, TRG)],
+                    dictionaries=dicts,
                     validFreq=10000,
                     dispFreq=1000,
                     saveFreq=10000,

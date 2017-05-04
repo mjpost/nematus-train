@@ -20,12 +20,20 @@ ref=data/validate.tok.$TRG
 modelname=$(basename $prefix .npz)
 out=$dev.$modelname.output
 
+if [[ $FACTORS -gt 1 ]]; then
+    dev=data/validate.factors.$SRC
+fi
+
 devno=$($TRAIN/get-gpus.sh)
 echo "Using device $devno" 
 
 # decode
-if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
-    echo "\$AMUNMT apparently not installed, too bad --- this is going to take a while!"
+if [[ $FACTORS -gt 1 ]] || [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
+    if [[ $FACTORS -gt 1 ]]; then
+        echo "Too bad AMUNMT doesn't support factors --- this is going to take a while!"
+    else
+        echo "\$AMUNMT apparently not installed, too bad --- this is going to take a while!"
+    fi
     THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device$devno,on_unused_input=warn python $nematus/nematus/translate.py \
         -m $prefix \
         -i $dev \
