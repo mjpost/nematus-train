@@ -20,9 +20,9 @@ import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Clean up old Nematus models.')
     parser.add_argument('-k', dest='keep', type=int, default=3, 
-                        help='Keep last KEEP models (default 0)')
+                        help='Keep last KEEP models (default 3)')
     parser.add_argument('-m', dest='modulo', type=int, default=10000,
-                        help='Keep models of iterations divisible by m (default 0 = off)')
+                        help='Keep models of iterations divisible by m (default 10000)')
     parser.add_argument('--exec', dest='dry_run', default=True, action='store_false',
                         help='Actually do the deletions.')
     parser.add_argument('model_dir', help='The model directory')
