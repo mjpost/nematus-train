@@ -26,11 +26,13 @@ for prefix in train validate
  do
    cat data/$prefix.$SRC | \
    $mosesdecoder/scripts/tokenizer/normalize-punctuation.perl -l $SRC | \
-   $mosesdecoder/scripts/tokenizer/tokenizer.perl -a -l $SRC > data/$prefix.tok.$SRC
+   $mosesdecoder/scripts/tokenizer/tokenizer.perl -a -l $SRC > data/$prefix.tok.$SRC &
 
    cat data/$prefix.$TRG | \
    $mosesdecoder/scripts/tokenizer/normalize-punctuation.perl -l $TRG | \
    $mosesdecoder/scripts/tokenizer/tokenizer.perl -a -l $TRG > data/$prefix.tok.$TRG
+
+   wait
 
  done
 
@@ -39,8 +41,10 @@ $mosesdecoder/scripts/training/clean-corpus-n.perl data/train.tok $SRC $TRG data
 
 # train truecaser
 [[ ! -d "model" ]] && mkdir model
-$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$SRC -model model/truecase-model.$SRC
+$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$SRC -model model/truecase-model.$SRC &
 $mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$TRG -model model/truecase-model.$TRG
+
+wait
 
 # apply truecaser (cleaned training corpus)
 for prefix in train
