@@ -46,7 +46,7 @@ if __name__ == '__main__':
                     decay_c=0.,
                     clip_c=1.,
                     lrate=0.0001,
-                    optimizer='adadelta',
+                    optimizer='adam',
                     maxlen=50,
                     batch_size=args.batch_size,
                     valid_batch_size=args.batch_size,
