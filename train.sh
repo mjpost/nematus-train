@@ -33,13 +33,13 @@ if [[ \$FACTORS -gt 1 ]]; then
 fi
 
 # Build dictionary list for factored or unfactored models
-DICTS="train.bpe.\$SRC.json"
+DICTS="data/train.bpe.\$SRC.json"
 if [[ \$FACTORS -gt 1 ]]; then
   for num in \$(seq 1 \$FACTORS); do
-    DICTS+=" train.factors.\$num.\$SRC.json"
+    DICTS+=" data/train.factors.\$num.\$SRC.json"
   done
 fi
-DICTS+=" train.bpe.\$TRG.json"
+DICTS+=" data/train.bpe.\$TRG.json"
 
 # Set dimensions for factored training
 if [[ \$FACTORS -gt 1 ]]; then
