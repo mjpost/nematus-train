@@ -75,9 +75,9 @@ fi
 $TRAIN/postprocess-dev.sh < $out > $out.postprocessed
 
 ## get BLEU
-BEST=`cat model/model.npz_best_bleu || echo 0`
+BEST=`cat model/best_bleu.txt 2> /dev/null || echo 0`
 bleu_output=$($TRAIN/moses-scripts/generic/multi-bleu.perl $ref < $out.postprocessed)
-echo -e "$prefix\t$bleu_output" >> model/model.npz_bleu_scores
+echo -e "$prefix\t$bleu_output" >> model/bleu_scores.txt
 BLEU=`echo $bleu_output | cut -f 3 -d ' ' | cut -f 1 -d ','`
 BETTER=`echo "$BLEU > $BEST" | bc`
 
@@ -86,6 +86,6 @@ echo "BLEU = $BLEU"
 # save model with highest BLEU
 if [ "$BETTER" = "1" ]; then
   echo "new best; saving"
-  echo $BLEU > model/model.npz_best_bleu
-  ln -sf $(basename $prefix) model/model.npz_best_model
+  echo $BLEU > model/best_bleu.txt
+  ln -sf $(basename $prefix) model/best_model.npz
 fi
