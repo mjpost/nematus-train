@@ -25,43 +25,43 @@
 for prefix in train validate
  do
    cat data/$prefix.$SRC | \
-   $mosesdecoder/scripts/tokenizer/normalize-punctuation.perl -l $SRC | \
-   $mosesdecoder/scripts/tokenizer/tokenizer.perl -a -l $SRC > data/$prefix.tok.$SRC &
+   $TRAIN/moses-scripts/tokenizer/normalize-punctuation.perl -l $SRC | \
+   $TRAIN/moses-scripts/tokenizer/tokenizer.perl -no-escape -protected $TRAIN/moses-scripts/tokenizer/basic-protected-patterns -a -l $SRC > data/$prefix.tok.$SRC &
 
    cat data/$prefix.$TRG | \
-   $mosesdecoder/scripts/tokenizer/normalize-punctuation.perl -l $TRG | \
-   $mosesdecoder/scripts/tokenizer/tokenizer.perl -a -l $TRG > data/$prefix.tok.$TRG
+   $TRAIN/moses-scripts/tokenizer/normalize-punctuation.perl -l $TRG | \
+   $TRAIN/moses-scripts/tokenizer/tokenizer.perl -no-escape -protected $TRAIN/moses-scripts/tokenizer/basic-protected-patterns -a -l $TRG > data/$prefix.tok.$TRG
 
    wait
 
  done
 
 # clean empty and long sentences, and sentences with high source-target ratio (training corpus only)
-$mosesdecoder/scripts/training/clean-corpus-n.perl data/train.tok $SRC $TRG data/train.tok.clean 1 80
+$TRAIN/moses-scripts/training/clean-corpus-n.perl data/train.tok $SRC $TRG data/train.tok.clean 1 80
 
 # train truecaser
 [[ ! -d "model" ]] && mkdir model
-$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$SRC -model model/truecase-model.$SRC &
-$mosesdecoder/scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$TRG -model model/truecase-model.$TRG
+$TRAIN/moses-scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$SRC -model model/truecase-model.$SRC &
+$TRAIN/moses-scripts/recaser/train-truecaser.perl -corpus data/train.tok.clean.$TRG -model model/truecase-model.$TRG
 
 wait
 
 # apply truecaser (cleaned training corpus)
 for prefix in train
  do
-  $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$SRC < data/$prefix.tok.clean.$SRC > data/$prefix.tc.$SRC
-  $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$TRG < data/$prefix.tok.clean.$TRG > data/$prefix.tc.$TRG
+  $TRAIN/moses-scripts/recaser/truecase.perl -model model/truecase-model.$SRC < data/$prefix.tok.clean.$SRC > data/$prefix.tc.$SRC
+  $TRAIN/moses-scripts/recaser/truecase.perl -model model/truecase-model.$TRG < data/$prefix.tok.clean.$TRG > data/$prefix.tc.$TRG
  done
 
 # apply truecaser (dev/test files)
 for prefix in validate
  do
-  $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$SRC < data/$prefix.tok.$SRC > data/$prefix.tc.$SRC
-  $mosesdecoder/scripts/recaser/truecase.perl -model model/truecase-model.$TRG < data/$prefix.tok.$TRG > data/$prefix.tc.$TRG
+  $TRAIN/moses-scripts/recaser/truecase.perl -model model/truecase-model.$SRC < data/$prefix.tok.$SRC > data/$prefix.tc.$SRC
+  $TRAIN/moses-scripts/recaser/truecase.perl -model model/truecase-model.$TRG < data/$prefix.tok.$TRG > data/$prefix.tc.$TRG
  done
 
 # train BPE
-let bpe_operations=$VOCAB_SIZE-500
+let bpe_operations=$VOCAB_SIZE-10
 cat data/train.tc.$SRC data/train.tc.$TRG | $subword_nmt/learn_bpe.py -s $bpe_operations > model/$SRC$TRG.bpe
 
 # apply BPE

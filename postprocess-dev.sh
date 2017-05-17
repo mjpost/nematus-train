@@ -3,4 +3,4 @@
 . ./params.txt
 
 sed 's/\@\@ //g' | \
-$mosesdecoder/scripts/recaser/detruecase.perl
+$TRAIN/moses-scripts/recaser/detruecase.perl

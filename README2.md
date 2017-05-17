@@ -3,7 +3,9 @@ INSTRUCTIONS
 
 Choose a run directory and create a file named "params.txt". This is loaded by all the files in this
 directory. A sample one has been provided for you. This will set top-level parameters such as the
-language pair and data sets being used.
+language pair and data sets being used. You can customize the operations for different jobs
+by also copying over all the scripts and setting the value of $TRAIN in params.txt, but these
+scripts are designed to be able to be run from a shared location.
 
 Put GPU specific commands in a file named "gpu.sh". These are shell commands that are run
 prior to any GPU job (assuming "device" has been set to "gpu" in params.txt). For example,
@@ -21,18 +23,18 @@ For processing new data, more changes will be necessary.
 
 Then, preprocess the training, dev and test data:
 
-  ./preprocess.sh
+  preprocess.sh
 
 Then, start training: on normal-size data sets, this will take about 1-2 weeks to converge.
 Models are saved regularly, and you may want to interrupt this process without waiting for it to finish.
 
-  ./train.sh
+  train.sh
 
 Given a model, preprocessed text can be translated thusly:
 
-  ./translate.sh
+  translate.sh
 
 Finally, you may want to post-process the translation output, namely merge BPE segments,
 detruecase and detokenize:
 
-  ./postprocess-test.sh < data/newsdev2016.output > data/newsdev2016.postprocessed
+  postprocess-test.sh < data/newsdev2016.output > data/newsdev2016.postprocessed
