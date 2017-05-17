@@ -23,7 +23,7 @@ if [[ "\$device" = "gpu" ]]; then
     . $TRAIN/gpu.sh
 fi
 
-devno=\$(\$TRAIN/get-gpus.sh)
+devno=\$(\$TRAIN/free-gpu)
 echo "Using device gpu\$devno"
 
 # Adjust path to training data

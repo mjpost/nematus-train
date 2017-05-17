@@ -26,22 +26,30 @@ if [[ $FACTORS -gt 1 ]]; then
     dev=data/validate.factors.$SRC
 fi
 
-devno=$($TRAIN/get-gpus.sh)
+devno=$($TRAIN/free-gpu)
+devno=0
 echo "Using device $devno" 
 
 # decode
-if [[ $FACTORS -gt 1 ]] || [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
-    if [[ $FACTORS -gt 1 ]]; then
-        echo "Too bad AMUNMT doesn't support factors --- this is going to take a while!"
-    else
-        echo "\$AMUNMT apparently not installed, too bad --- this is going to take a while!"
-    fi
+if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
     THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device$devno,on_unused_input=warn python $nematus/nematus/translate.py \
         -m $prefix \
         -i $dev \
         -o $out \
         -k 12 -n -p 1
 else
+
+    VOCAB=../data/train.bpe.$SRC.json
+    if [[ $FACTORS -gt 1 ]]; then
+        for num in $(seq 1 $FACTORS); do
+            if [[ $num -eq $FACTORS ]]; then
+                break
+            fi
+            VOCAB+=", data/train.factors.$num.$SRC.json"
+        done
+
+        VOCAB="[$VOCAB]"
+    fi
 cat > validate/config.$modelname.yml <<EOF
 # Paths are relative to config file location
 relative-paths: yes
@@ -61,7 +69,7 @@ weights:
   F0: 1.0
 
 # vocabularies
-source-vocab: ../data/train.bpe.$SRC.json
+source-vocab: $VOCAB
 target-vocab: ../data/train.bpe.$TRG.json
 
 # don't apply BPE because that has already been done
@@ -69,6 +77,7 @@ target-vocab: ../data/train.bpe.$TRG.json
 debpe: false
 EOF
 
+echo "Decoding with amun: config = validate/config.$modelnam.yml, model = ../$prefix"
 $AMUNMT/build/bin/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out
 fi
 

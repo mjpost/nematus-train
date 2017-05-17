@@ -31,7 +31,7 @@ Put GPU specific commands in a file named "gpu.sh". These are shell commands
 that are run prior to any GPU job (assuming "device" has been set to "gpu" in
 params.txt). For example, you might need to load a Python environment or CuDNN.
 
-The script "get-gpus.sh" should be modified to return a list of available
+The script "free-gpu" should be modified to return a list of available
 GPUs. This is used for NMT. For example, if you are using the Univa grid
 manager, you can configure it to make the GPU devices available as resources
 which are then reported in the shell:
