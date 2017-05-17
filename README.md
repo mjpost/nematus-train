@@ -1,71 +1,74 @@
-This directory contains files and configuration scripts for training a simple neural MT
-model. It is based on scripts provided by Rico Sennrich for training WMT'16 models
+NEMATUS TRAINING SCRIPTS
+========================
+Matt Post
+May 2017
 
-       https://github.com/rsennrich/wmt16-scripts
+The scripts in this directory were cloned from
+https://github.com/rsennrich/wmt16-scripts and contain many changes and
+improvements, including:
 
-but has been modified to be a bit more general and make it easier to change to different
-languages and datasets. These can be found in sample/ (see the README there).
+- Extraction of runtime parameters into a "params.txt" file that is loaded
+  everwhere
+- Integration with the "qsub" command for running in cluster environments
+- Integration with AMUNMT (https://amunmt.github.io) for fast validation
+  decoding (no training support for Marian yet)
+- Merging the factored and unfactored scripts
+- An improved format for storing the results of validation runs
+- Other scripts for keeping and deleting the best models
+- Works directly with nmt.py, removing config.py
 
-Old README follows pending later cleanup.
+INSTRUCTIONS
+------------
 
-Scripts for Edinburgh Neural MT systems for WMT 16
-==================================================
+Choose a run directory and create a file named "params.txt". This is loaded by
+all the files in this directory. A sample one has been provided for you. This
+will set top-level parameters such as the language pair and data sets being
+used. You can customize the operations for different jobs by also copying over
+all the scripts and setting the value of $TRAIN in params.txt, but these scripts
+are designed to be able to be run from a shared location.
 
-This repository contains scripts and an example config used for the Edinburgh Neural MT submission (UEDIN-NMT)
-for the shared translation task at the 2016 Workshops on Statistical Machine Translation (http://www.statmt.org/wmt16/),
-and for the paper "Linguistic Input Features Improve Neural Machine Translation".
+Put GPU specific commands in a file named "gpu.sh". These are shell commands
+that are run prior to any GPU job (assuming "device" has been set to "gpu" in
+params.txt). For example, you might need to load a Python environment or CuDNN.
 
-The scripts will facilitate the reproduction of our results, and serve as additional documentation (along with the system description paper)
+The script "get-gpus.sh" should be modified to return a list of available
+GPUs. This is used for NMT. For example, if you are using the Univa grid
+manager, you can configure it to make the GPU devices available as resources
+which are then reported in the shell:
 
+    http://ernst.bablick.de/blog_files/how_to_schedule_gpu_resources.html
 
-OVERVIEW
---------
+All scripts contain variables that you will need to set to run the scripts.  For
+processing the sample data, only paths to different toolkits need to be set.
+For processing new data, more changes will be necessary.
 
-- We built translation models with Nematus ( https://www.github.com/rsennrich/nematus )
-- We used BPE as subword segmentation to achieve open-vocabulary translation ( https://github.com/rsennrich/subword-nmt )
-- We automatically back-translated in-domain monolingual data into the source language to create additional training data.
-- More details about our system are available in the system description paper (see below for reference)
+Then, preprocess the training, dev and test data:
 
-MODELS and DATA
----------------
+  preprocess.sh
 
-- pre-trained models on WMT data are released at http://statmt.org/rsennrich/wmt16_systems/
-  they currently correspond to the best single model for 8 translation directions: EN<->{CS,DE,RO,RU}
+You might want to run this via qsub:
 
-- automatically back-translated monolingual data, which we used for our WMT submissions, is available at http://statmt.org/rsennrich/wmt16_backtranslations/
+  qsub -S /bin/bash -cwd -j y -o preprocess.log -lh_rt=24:00:00,num_proc=2 scripts/preprocess.sh
 
-- linguistically annotated corpora which we used for our factored models are available at http://data.statmt.org/rsennrich/wmt16_factors/
+Then, start training: on normal-size data sets, this will take about 1-2 weeks
+to converge. Models are saved regularly, and you may want to interrupt this
+process without waiting for it to finish.
 
-SCRIPTS
--------
+  train.sh
 
-- preprocessing : preprocessing scripts for Romanian that we found helpful for translation quality.
-                  we used the Moses tokenizer and truecaser for all language pairs.
+The "train.sh" script creates a language-pair specific script train-SRC-TRG.sh
+and runs that repeatedly via qsub. You can set the variable RUNTIME in
+params.txt if you need this training to give up the GPU every once in a while to
+give your colleagues a chance to get the GPU.
 
-- sample : sample scripts that we used for preprocessing, training and decoding. We used mostly the same settings for all translation directions,
-           with small differences in vocabulary size. Dropout was enabled for EN<->RO, but disabled otherwise.
+Given a model, preprocessed text can be translated thusly:
 
-- factored_sample: sample scripts for preprocessing and training with linguistic input features. This was not used in shared task submissions,
-                   but in (Sennrich and Haddow, 2016).
+  translate.sh
 
-- r2l : scripts for reranking the output of the (default) left-to-right decoder with a model that decodes from right-to-left.
+Finally, you may want to post-process the translation output, namely merge BPE segments,
+detruecase and detokenize:
 
-
-EVALUATION
-----------
-
-WMT reports case-sensitive BLEU on detokenized text with the NIST BLEU scorer.
-Assuming that you have detokenized your output (see `sample/postprocess-test.sh`) in the file `output.detok`, here is how we score a system (on the example of EN-DE):
-
-```
-  /path/tom/mosesdecoder/scripts/ems/support/wrap-xml.perl de newstest2016-ende-src.en.sgm < output.detok > tmpfile
-  /path/tom/mosesdecoder/scripts/generic/mteval-v13a.pl -c -s newstest2016-ende-src.en.sgm -r newstest2016-ende-ref.de.sgm -t tmpfile
-```
-
-Note that multi-bleu.perl on tokenized text will give different scores (usually higher), because of tokenization differences.
-Also, comparing different systems with tokenized BLEU is unreliable unless tokenization is identical.
-Even when using standard Moses tokenization, command line options like '-penn' and '-a' will cause inconsistencies.
-
+  postprocess-test.sh < data/newsdev2016.output > data/newsdev2016.postprocessed
 
 LICENSE
 -------
