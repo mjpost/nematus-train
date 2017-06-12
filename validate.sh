@@ -77,8 +77,16 @@ target-vocab: ../data/train.bpe.$TRG.json
 debpe: false
 EOF
 
-echo "Decoding with amun: config = validate/config.$modelnam.yml, model = ../$prefix"
-$AMUNMT/build/bin/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out
+echo "Running $AMUNMT/build/bin/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out..."
+$AMUNMT/build/bin/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 4 --i $dev > $out
+fi
+
+lineswanted=$(cat $dev | wc -l)
+linesfound=$(cat $out | wc -l)
+if [[ $lineswanted -ne $linesfound ]]; then
+  echo "* ERROR: output file $out has only $linesfound lines (needed $lineswanted)"
+  echo "* something must have gone wrong, quitting"
+  exit
 fi
 
 $TRAIN/postprocess-dev.sh < $out > $out.postprocessed
