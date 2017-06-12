@@ -15,7 +15,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     scores = []
-    for line in open('{}/model.npz_bleu_scores'.format(args.model_dir)):
+    for line in open('{}/bleu_scores.txt'.format(args.model_dir)):
         model, bleu_str = re.split(r'\s+', line.rstrip(), 1)
 
         try:
@@ -31,7 +31,7 @@ if __name__ == '__main__':
             break
 
         if args.v:
-            print model[0], model[1],
+            print model[0], model[1]
         else:
             print model[1]
     
