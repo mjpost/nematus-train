@@ -24,7 +24,7 @@ if __name__ == '__main__':
         except ValueError:
             continue
 
-        scores.append( (score, os.path.join(dirname(args.model_dir), basename(model))) )
+        scores.append( (score, os.path.join(args.model_dir, basename(model))) )
 
     for i, model in enumerate(sorted(scores, cmp=lambda x,y: cmp(x[0], y[0]), reverse=True)):
         if i >= args.n:
