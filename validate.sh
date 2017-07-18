@@ -40,7 +40,7 @@ devno=$($TRAIN/free-gpu)
 echo "Using device $devno on $hostname" 
 
 # decode
-if [[ -z $MARIAN]] || [[ ! -x $MARIAN/build/amun ]]; then
+if [[ -z $MARIAN ]] || [[ ! -x $MARIAN/build/amun ]]; then
     THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device$devno,on_unused_input=warn python $nematus/nematus/translate.py \
         -m $prefix \
         -i $dev \
