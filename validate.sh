@@ -26,9 +26,18 @@ if [[ $FACTORS -gt 1 ]]; then
     dev=data/validate.factors.$SRC
 fi
 
+# quit if it's already been done
+if [[ -s $out ]]; then
+    wanted=$(cat $ref | wc -l)
+    found=$(cat $out | wc -l)
+    if [[ $wanted -eq $found ]]; then
+        exit
+    fi
+fi
+
+hostname=$(hostname)
 devno=$($TRAIN/free-gpu)
-devno=0
-echo "Using device $devno" 
+echo "Using device $devno on $hostname" 
 
 # decode
 if [[ -z $MARIAN]] || [[ ! -x $MARIAN/build/amun ]]; then
