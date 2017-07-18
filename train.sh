@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #$ -S /bin/bash -V -cwd -j y
-#$ -l h_rt=168:00:00
+#$ -l h_rt=500:00:00
 #$ -q all.q
 
 set -u
@@ -9,11 +9,13 @@ set -u
 QSUB_PARAMS=""
 . ./params.txt
 
-maxiters=50
+NUMGPUS=4
+
+maxiters=1
 echo "Running for at most $maxiters iterations..."
 
 # Create the qsub file
-cat > train-$SRC-$TRG.sh <<EOF
+cat > nmt-$SRC-$TRG.sh <<EOF
 #!/bin/bash
 
 . ./params.txt
@@ -23,8 +25,12 @@ if [[ "\$device" = "gpu" ]]; then
     . $TRAIN/gpu.sh
 fi
 
+hostname=\$(hostname)
+echo "SGE_HGR_gpu=\$SGE_HGR_gpu"
+echo "hostname=\$hostanme"
+
 devno=\$(\$TRAIN/free-gpu)
-echo "Using device gpu\$devno"
+echo "Using device(s) \$devno"
 
 # Adjust path to training data
 BPE_OR_FACTOR=bpe
@@ -52,28 +58,47 @@ if [[ \$FACTORS -gt 1 ]]; then
 fi
 
 [[ ! -d model ]] && mkdir model
-THEANO_FLAGS=device=\$device\$devno python \$nematus/nematus/nmt.py \\
-  --reload \\
-  --saveFreq 10000 \\
-  --dim_word 500 \\
-  --dim 1000 \\
-  --model model/model.npz \\
-  --datasets data/train.\$BPE_OR_FACTOR.\$SRC data/train.bpe.\$TRG \
-  --dictionaries \$DICTS \\
-  --n_words \$VOCAB_SIZE \\
-  --n_words_src \$VOCAB_SIZE \\
-  --runtime \$RUNTIME \\
-  --maxlen 50 \\
-  --optimizer adam \\
-  --batch_size \$BATCHSIZE \\
-  --valid_datasets data/validate.\$BPE_OR_FACTOR.\$SRC data/validate.bpe.\$TRG \\
-  --validFreq 10000 \\
-  --patience 10 \\
-  --external_validation_script \$TRAIN/validate-qsub.sh \\
-  --dispFreq 1000 \\
-  --sampleFreq 10000 \\
-  --factors \$FACTORS \\
-  \$DIMS
+[[ ! -d validate ]] && mkdir validate
+
+if [[ -z \$MARIAN ]]; then
+  THEANO_FLAGS=device=\$device\$devno python \$nematus/nematus/nmt.py \\
+    --reload \\
+    --saveFreq 10000 \\
+    --dim_word 500 \\
+    --dim 1000 \\
+    --model model/model.npz \\
+    --datasets data/train.\$BPE_OR_FACTOR.\$SRC data/train.bpe.\$TRG \
+    --dictionaries \$DICTS \\
+    --n_words \$VOCAB_SIZE \\
+    --n_words_src \$VOCAB_SIZE \\
+    --runtime \$RUNTIME \\
+    --maxlen 50 \\
+    --optimizer adam \\
+    --batch_size \$BATCHSIZE \\
+    --valid_datasets data/validate.\$BPE_OR_FACTOR.\$SRC data/validate.bpe.\$TRG \\
+    --validFreq 20000 \\
+    --patience 10 \\
+    --external_validation_script \$TRAIN/validate-qsub.sh \\
+    --dispFreq 1000 \\
+    --sampleFreq 10000 \\
+    --factors \$FACTORS \\
+    \$DIMS
+else
+  \$MARIAN/build/marian \\
+    --model model/model.npz \\
+    -T \$TMPDIR \\
+    --devices \$devno --seed 0 \\
+    --train-sets data/train.bpe.{\$SRC,\$TRG} \\
+    --vocabs data/train.bpe.{\$SRC,\$TRG}.json \\
+    --dim-vocabs \$VOCAB_SIZE \$VOCAB_SIZE \\
+    --dynamic-batching -w 3000 \\
+    --layer-normalization --dropout-rnn 0.2 --dropout-src 0.1 --dropout-trg 0.1 \\
+    --early-stopping 5 --moving-average \\
+    --valid-freq 20000 --save-freq 20000 --disp-freq 10000 \\
+    --valid-sets data/validate.bpe.{\$SRC,\$TRG} \\
+    --valid-metrics cross-entropy \\
+    --valid-log validate/validate.log
+fi
 EOF
 
 [[ ! -d logs ]] && mkdir logs
@@ -83,7 +108,7 @@ for iter in $(seq 1 $maxiters); do
     # Run an iteration of training lasting at most two hours. Make sure that
     # saveFreq is set low enough in config.py to save within that amount of time
     # (1000 should be sufficient though it is relatively often)
-    qsub -sync y -cwd -S /bin/bash -V -l mem_free=16g,gpu=1,h_rt=$RUNTIME -j y -o logs/ $QSUB_PARAMS ./train-$SRC-$TRG.sh
+    qsub -sync y -cwd -S /bin/bash -V -l mem_free=16g,gpu=$NUMGPUS,h_rt=$RUNTIME -j y -o logs/ $QSUB_PARAMS ./nmt-$SRC-$TRG.sh
 
     if [[ $iter -ge $maxiters ]]; then
         echo "Quitting."
