@@ -31,7 +31,7 @@ devno=0
 echo "Using device $devno" 
 
 # decode
-if [[ -z $AMUNMT ]] || [[ ! -x $AMUNMT/build/bin/amun ]]; then
+if [[ -z $MARIAN]] || [[ ! -x $MARIAN/build/amun ]]; then
     THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=$device$devno,on_unused_input=warn python $nematus/nematus/translate.py \
         -m $prefix \
         -i $dev \
@@ -77,8 +77,8 @@ target-vocab: ../data/train.bpe.$TRG.json
 debpe: false
 EOF
 
-echo "Running $AMUNMT/build/bin/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out..."
-$AMUNMT/build/bin/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 4 --i $dev > $out
+echo "Running $MARIAN/build/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out..."
+$MARIAN/build/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out
 fi
 
 lineswanted=$(cat $dev | wc -l)
