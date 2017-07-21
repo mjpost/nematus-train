@@ -27,7 +27,7 @@ TARGET=$4
 SCRIPTDIR=$(dirname $0)
 NAME=$(basename $PREFIX)
 
-[[ ! -d test ]] && mkdir test
+[[ ! -d $TARGET ]] && mkdir -p $TARGET
 # tokenize
 for ext in $SRC $TRG; do
     cat $PREFIX.$ext \
