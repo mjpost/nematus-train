@@ -88,7 +88,6 @@ fi
 $TRAIN/postprocess-dev.sh < $out > $out.postprocessed
 
 ## get BLEU
-BEST=`cat model/best_bleu.txt 2> /dev/null || echo 0`
 bleu_output=$($TRAIN/moses-scripts/generic/multi-bleu.perl -lc $ref < $out.postprocessed)
 BLEU=`echo $bleu_output | cut -f 3 -d ' ' | cut -f 1 -d ','`
 
