@@ -11,9 +11,6 @@ QSUB_PARAMS=""
 
 NUMGPUS=4
 
-maxiters=1
-echo "Running for at most $maxiters iterations..."
-
 # Create the qsub file
 cat > nmt-$SRC-$TRG.sh <<EOF
 #!/bin/bash
@@ -101,19 +98,7 @@ else
 fi
 EOF
 
-[[ ! -d logs ]] && mkdir logs
-for iter in $(seq 1 $maxiters); do
-    echo "ITERATION $iter / $maxiters"
+# Run
+qsub -sync y -cwd -S /bin/bash -V -j y -o nmt-$SRC-$TRG.log $QSUB_PARAMS ./nmt-$SRC-$TRG.sh
 
-    # Run an iteration of training lasting at most two hours. Make sure that
-    # saveFreq is set low enough in config.py to save within that amount of time
-    # (1000 should be sufficient though it is relatively often)
-    qsub -sync y -cwd -S /bin/bash -V -l mem_free=16g,gpu=$NUMGPUS,h_rt=$RUNTIME -j y -o logs/ $QSUB_PARAMS ./nmt-$SRC-$TRG.sh
-
-    if [[ $iter -ge $maxiters ]]; then
-        echo "Quitting."
-        break
-    fi
-
-    let iter=iter+1
-done
+qsub ./scripts/validate-all.sh
