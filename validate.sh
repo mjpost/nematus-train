@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#$ -cwd -S /bin/bash -V 
+#$ -j y -o validate/validate.log 
+#$ -l h_rt=24:00:00,num_proc=1
+
 if [[ -z $1 ]]; then
     echo "Usage: validate-qsub.sh MODEL"
     exit 1
@@ -18,7 +22,7 @@ fi
 [[ ! -d validate ]] && mkdir validate
 
 dev=data/validate.bpe.$SRC
-ref=data/validate.tok.$TRG
+ref=data/validate.tc.$TRG
 modelname=$(basename $prefix .npz)
 out=validate/validate.$modelname.output
 
@@ -38,6 +42,8 @@ fi
 hostname=$(hostname)
 devno=$($TRAIN/free-gpu)
 echo "Using device $devno on $hostname" 
+env | grep SGE_HGR_gpu
+nvidia-smi
 
 # decode
 if [[ -z $MARIAN ]] || [[ ! -x $MARIAN/build/amun ]]; then
@@ -86,8 +92,9 @@ target-vocab: ../data/train.bpe.$TRG.json
 debpe: false
 EOF
 
-echo "Running $MARIAN/build/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out..."
-$MARIAN/build/amun -c validate/config.$modelname.yml -d "$devno" --gpu-threads 1 --i $dev > $out
+cmd="$MARIAN/build/amun -c validate/config.$modelname.yml -d 0 -i $dev"
+echo "Running [on device $devno] $cmd > $out"
+CUDA_VISIBLE_DEVICES=$devno $cmd > $out
 fi
 
 lineswanted=$(cat $dev | wc -l)
