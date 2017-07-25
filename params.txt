@@ -40,7 +40,7 @@ QSUB_PARAMS=""
 TMP=/scratch
 
 # path to subword segmentation scripts: https://github.com/rsennrich/subword-nmt
-subword_nmt=/path/to/subword-nmt 
+BPE=/path/to/subword-nmt 
 
 # path to nematus: https://www.github.com/rsennrich/nematus
 nematus=/path/to/nematus

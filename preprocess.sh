@@ -1,5 +1,9 @@
 #!/bin/sh
 
+#$ -cwd -S /bin/bash -V 
+#$ -j y -o preprocess.log 
+#$ -l h_rt=24:00:00,num_proc=2
+
 # this sample script preprocesses a sample corpus, including tokenization,
 # truecasing, and subword segmentation. 
 # for application to a different language pair,
@@ -62,13 +66,13 @@ for prefix in validate
 
 # train BPE
 let bpe_operations=$VOCAB_SIZE-10
-cat data/train.tc.$SRC data/train.tc.$TRG | $subword_nmt/learn_bpe.py -s $bpe_operations > model/$SRC$TRG.bpe
+cat data/train.tc.$SRC data/train.tc.$TRG | $BPE/learn_bpe.py -s $bpe_operations > model/$SRC$TRG.bpe
 
 # apply BPE
 for prefix in train validate
  do
-  $subword_nmt/apply_bpe.py -c model/$SRC$TRG.bpe < data/$prefix.tc.$SRC > data/$prefix.bpe.$SRC
-  $subword_nmt/apply_bpe.py -c model/$SRC$TRG.bpe < data/$prefix.tc.$TRG > data/$prefix.bpe.$TRG
+  $BPE/apply_bpe.py -c model/$SRC$TRG.bpe < data/$prefix.tc.$SRC > data/$prefix.bpe.$SRC
+  $BPE/apply_bpe.py -c model/$SRC$TRG.bpe < data/$prefix.tc.$TRG > data/$prefix.bpe.$TRG
  done
 
 # build network dictionary
