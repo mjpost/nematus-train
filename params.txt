@@ -42,11 +42,14 @@ DIMS=""
 # temp directory
 TMP=/scratch
 
+# where is marian
+MARIAN=/path/to/marian
+
 # path to subword segmentation scripts: https://github.com/rsennrich/subword-nmt
 BPE=/path/to/subword-nmt 
 
 # path to nematus: https://www.github.com/rsennrich/nematus
-nematus=/path/to/nematus
+NEMATUS=/path/to/nematus
 
 # directory containing training scripts
 TRAIN=$HOME/code/nematus-train

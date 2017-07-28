@@ -76,4 +76,4 @@ for prefix in train validate
  done
 
 # build network dictionary
-$nematus/data/build_dictionary.py data/train.bpe.$SRC data/train.bpe.$TRG
+$NEMATUS/data/build_dictionary.py data/train.bpe.$SRC data/train.bpe.$TRG
