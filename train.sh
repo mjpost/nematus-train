@@ -24,10 +24,9 @@ fi
 
 hostname=\$(hostname)
 echo "SGE_HGR_gpu=\$SGE_HGR_gpu"
-echo "hostname=\$hostanme"
 
 devno=\$(\$TRAIN/free-gpu)
-echo "Using device(s) \$devno"
+echo "Using device(s) \$devno on \$hostname"
 
 # Adjust path to training data
 BPE_OR_FACTOR=bpe
