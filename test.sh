@@ -11,6 +11,16 @@ SCRIPTDIR=$(dirname $0)
 
 . ./params.txt
 
+if [[ ! -s $MODEL ]]; then
+    echo "$MODEL doesn't exist!"
+    exit 1
+fi
+
+if [[ ! -s $PREFIX.$SRC ]] || [[ ! -s $PREFIX.$TRG ]]; then
+    echo "That seems to be a bad prefix!"
+    exit 1
+fi
+
 # Use this to link the best model
 # $TRAIN/best_models.py -n1 -l model -v
 
@@ -26,7 +36,7 @@ MODELNAME=$(basename $MODEL .npz)
 
 # prepare the corpus
 in=test/$NAME.bpe.$SRC
-ref=test/$NAME.bpe.$TRG
+ref=test/$NAME.tc.$TRG
 $SCRIPTDIR/prepare-corpus.sh $PREFIX $SRC $TRG test
 
 out=test/$NAME.$MODELNAME.output
